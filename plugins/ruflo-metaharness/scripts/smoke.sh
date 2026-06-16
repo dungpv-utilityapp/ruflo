@@ -170,6 +170,24 @@ if (!od.metaharness) { console.error('missing metaharness in optionalDependencie
 if (j.dependencies && j.dependencies.metaharness) { console.error('metaharness leaked into dependencies'); process.exit(1); }
 " 2>/dev/null && ok || bad "ruflo wrapper missing metaharness optionalDep"
 
+step "17n. CLAUDE.md documents MetaHarness integration (ADR-150 discoverability — iter 22)"
+F="$ROOT/../../CLAUDE.md"
+miss=""
+[[ -f "$F" ]] || miss="$miss claude-md-missing"
+grep -q "^## MetaHarness Integration (ADR-150)" "$F" || miss="$miss no-section-header"
+# Architectural constraint anchor
+grep -q "Ruflo remains operational if every MetaHarness package is removed" "$F" || miss="$miss no-constraint-quote"
+# All 4 rules documented
+grep -q "no-metaharness-smoke.yml" "$F" || miss="$miss no-ci-gate-ref"
+# Command surface + tool surface enumerated
+grep -q "npx ruflo metaharness score" "$F" || miss="$miss no-cli-example"
+grep -q "mcp__claude-flow__metaharness_" "$F" || miss="$miss no-mcp-tool-list"
+# Routing + parallel-log integration both mentioned
+grep -q "CLAUDE_FLOW_ROUTER_NEURAL\|CLAUDE_FLOW_ROUTER_PARALLEL_LOG" "$F" || miss="$miss no-routing-flags"
+# 3-criteria gate
+grep -q "quality > 2% AND cost < 1% AND latency < 5%" "$F" || miss="$miss no-3-criteria-gate"
+[[ -z "$miss" ]] && ok || bad "$miss"
+
 step "17m. metaharness MCP tools registered (ADR-150 deepest integration — iter 20)"
 F="$ROOT/../../v3/@claude-flow/cli/src/mcp-tools/metaharness-tools.ts"
 miss=""

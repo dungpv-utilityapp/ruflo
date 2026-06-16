@@ -1105,6 +1105,78 @@ export const LIVE_REGISTRY_CID = 'NEW_CID_FROM_PINATA';
 curl -s "https://gateway.pinata.cloud/ipfs/{NEW_CID}" | jq '.totalPlugins'
 ```
 
+## MetaHarness Integration (ADR-150)
+
+Ruflo integrates with the upstream `metaharness` / `@metaharness/*` ecosystem as a sibling agent-harness scaffolding system (same author, designed around ruflo's primitives). Both `metaharness` and `@metaharness/router` are in `optionalDependencies` — never required at runtime.
+
+### Architectural constraint (load-bearing)
+
+**Ruflo remains operational if every MetaHarness package is removed.** Four rules:
+1. **Removable**: `npm ls --without @metaharness/*` must still produce a working CLI
+2. **Optional in package.json**: `@metaharness/*` packages MUST be in `optionalDependencies`, never in `dependencies`
+3. **Graceful degradation**: every code path that touches MetaHarness catches `MODULE_NOT_FOUND` and falls back
+4. **CI gate**: `.github/workflows/no-metaharness-smoke.yml` enforces all three by static grep + runtime drill on every PR
+
+### Command + tool surface
+
+```bash
+# CLI subcommands (npx ruflo metaharness …)
+npx ruflo metaharness score                      # 5-dim readiness scorecard
+npx ruflo metaharness genome                     # 7-section categorical report
+npx ruflo metaharness mcp-scan --fail-on high    # static security findings
+npx ruflo metaharness threat-model               # enterprise threat report
+npx ruflo metaharness oia-audit --alert-on-worst high
+                                                 # composite weekly audit → memory
+npx ruflo metaharness audit-list --since 30d     # enumerate audit records
+npx ruflo metaharness audit-trend \              # diff two audits (drift)
+  --baseline-key <a> --current-key <b> --alert-on-worsening
+npx ruflo metaharness mint --name foo --template vertical:coding --confirm
+
+# Dedicated command
+npx ruflo eject --name my-harness                # lift ruflo project → standalone harness
+                                                 # dry-run by default; refuses in-repo target
+
+# Doctor health check
+npx ruflo doctor --component metaharness         # report metaharness availability + version
+
+# MCP tools (callable by Claude Code agents)
+mcp__claude-flow__metaharness_score
+mcp__claude-flow__metaharness_genome
+mcp__claude-flow__metaharness_mcp_scan
+mcp__claude-flow__metaharness_threat_model
+mcp__claude-flow__metaharness_oia_audit
+mcp__claude-flow__metaharness_audit_list
+mcp__claude-flow__metaharness_audit_trend
+```
+
+### Routing integration (ADR-148/149)
+
+`@metaharness/router@~0.3.2` is wired as the cost-optimal model router behind the `CLAUDE_FLOW_ROUTER_NEURAL=1` triple-gate. The `routedBy` field on every routing decision carries `'metaharness-knn' | 'metaharness-krr' | 'fastgrnn'` when the neural path is active.
+
+### SelfEvolvingRouter parallel-logging (ADR-150 Phase 2)
+
+When `CLAUDE_FLOW_ROUTER_PARALLEL_LOG=1` is set, every `route()` call writes a paired-decision row (bandit pick + neural-augmented pick + outcome) to `.swarm/router-parallel.jsonl`. Analyze with:
+
+```bash
+node plugins/ruflo-metaharness/scripts/router-parallel-analyze.mjs \
+  --input .swarm/router-parallel.jsonl --strict
+```
+
+The 3-criteria AND-gate from ADR-150 review-round-1: `quality > 2% AND cost < 1% AND latency < 5%`. Exit 1 in `--strict` mode if any criterion fails — promotion gate.
+
+### CI workflows
+
+- `metaharness-ci.yml` — score / mcp-scan / router-compat / eject-dryrun jobs on every PR touching `plugins/ruflo-metaharness/**`
+- `no-metaharness-smoke.yml` — enforces the four architectural-constraint rules above on every PR
+- `oia-audit-weekly.yml` — Sundays 04:17 UTC, runs composite audit, uploads 90-day artifact
+
+### Cross-references
+
+- [ADR-150](v3/docs/adr/ADR-150-metaharness-integration-surfaces.md) — decision + implementation notes
+- [Issue #2399](https://github.com/ruvnet/ruflo/issues/2399) — phase tracker
+- [Research gist](https://gist.github.com/ruvnet/19d166ff9acf368c9da4172d91ac9113) — graded evidence
+- Upstream: `github.com/ruvnet/agent-harness-generator`
+
 ## Optional Plugins (20 Available)
 
 Plugins are distributed via IPFS and can be installed with the CLI. Browse and install from the official registry:
