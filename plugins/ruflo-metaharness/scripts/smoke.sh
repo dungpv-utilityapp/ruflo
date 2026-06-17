@@ -191,6 +191,30 @@ grep -q "execCli(\[\s*'-y'\s*,\s*'metaharness@latest'" "$F" 2>/dev/null || \
 grep -q "cwd: opts" "$F" || miss="$miss no-cwd-passthrough"
 [[ -z "$miss" ]] && ok || bad "$miss"
 
+step "17z78. metaharness-ci.yml contains all 6 expected jobs (iter 115)"
+miss=""
+# metaharness-ci.yml accumulated 6 jobs across iters 1-48. A refactor
+# that accidentally drops a job header passes YAML validation but
+# silently disables the gate. Smoke-anchor the job set.
+W="$ROOT/../../.github/workflows/metaharness-ci.yml"
+EXPECTED_JOBS=(
+  "score"            # iter 1 — score harness against ruflo
+  "mcp-scan"         # iter 1 — security finding scan
+  "router-compat"    # iter 12 — @metaharness/router API tripwire
+  "eject-dryrun"     # iter 4 — eject command Phase-2 differentiator
+  "similarity-tests" # iter 40 — ADR-152 §3.1 contract
+  "metaharness-real-data"  # iter 48 — load-bearing integration gate
+)
+for job in "${EXPECTED_JOBS[@]}"; do
+  grep -qE "^  ${job}:$" "$W" 2>/dev/null || miss="$miss missing-job-${job}"
+done
+# Count check anchors the floor — exactly 6 jobs expected
+ACTUAL=$(grep -cE "^  [a-z-]+:$" "$W" 2>/dev/null || echo 0)
+# Subtract 1 for the `push:` trigger block which also matches `^  push:$`
+EFFECTIVE_JOBS=$((ACTUAL - 1))
+[[ "$EFFECTIVE_JOBS" -ge 6 ]] || miss="$miss job-count-too-low:$EFFECTIVE_JOBS"
+[[ -z "$miss" ]] && ok || bad "$miss"
+
 step "17z77. bench scripts emit results[] with numeric meanUs (iter 114)"
 miss=""
 # iter 88 verified bench output JSON.parses. iter 114 goes further:
