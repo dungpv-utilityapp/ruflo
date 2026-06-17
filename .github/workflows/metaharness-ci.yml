@@ -152,6 +152,14 @@ jobs:
           # failures (which the cli build doesn't need to succeed).
           # pnpm@8.15.0 matches v3/package.json's packageManager pin.
           cd v3
+          # iter 139 — npm/pnpm fetch retries via env. Several postinstalls
+          # (onnxruntime-node, sharp) download CDN binaries; GH runners
+          # observed ECONNRESET mid-fetch with no auto-retry. These env
+          # vars push npm/pnpm to retry 5x with 1s→60s backoff.
+          export npm_config_fetch_retries=5
+          export npm_config_fetch_retry_mintimeout=1000
+          export npm_config_fetch_retry_maxtimeout=60000
+          export npm_config_fetch_retry_factor=2
           npx -y pnpm@8.15.0 install --frozen-lockfile --reporter=append-only
           # iter 138 — pnpm rebuild sharp (iter 134) didn't fix the missing
           # linux-x64 .node binary because pnpm 8.15's store doesn't honor
@@ -235,6 +243,14 @@ jobs:
           # failures (which the cli build doesn't need to succeed).
           # pnpm@8.15.0 matches v3/package.json's packageManager pin.
           cd v3
+          # iter 139 — npm/pnpm fetch retries via env. Several postinstalls
+          # (onnxruntime-node, sharp) download CDN binaries; GH runners
+          # observed ECONNRESET mid-fetch with no auto-retry. These env
+          # vars push npm/pnpm to retry 5x with 1s→60s backoff.
+          export npm_config_fetch_retries=5
+          export npm_config_fetch_retry_mintimeout=1000
+          export npm_config_fetch_retry_maxtimeout=60000
+          export npm_config_fetch_retry_factor=2
           npx -y pnpm@8.15.0 install --frozen-lockfile --reporter=append-only
           # iter 138 — pnpm rebuild sharp (iter 134) didn't fix the missing
           # linux-x64 .node binary because pnpm 8.15's store doesn't honor
@@ -421,6 +437,14 @@ jobs:
           # failures (which the cli build doesn't need to succeed).
           # pnpm@8.15.0 matches v3/package.json's packageManager pin.
           cd v3
+          # iter 139 — npm/pnpm fetch retries via env. Several postinstalls
+          # (onnxruntime-node, sharp) download CDN binaries; GH runners
+          # observed ECONNRESET mid-fetch with no auto-retry. These env
+          # vars push npm/pnpm to retry 5x with 1s→60s backoff.
+          export npm_config_fetch_retries=5
+          export npm_config_fetch_retry_mintimeout=1000
+          export npm_config_fetch_retry_maxtimeout=60000
+          export npm_config_fetch_retry_factor=2
           npx -y pnpm@8.15.0 install --frozen-lockfile --reporter=append-only
           # iter 138 — pnpm rebuild sharp (iter 134) didn't fix the missing
           # linux-x64 .node binary because pnpm 8.15's store doesn't honor
@@ -541,6 +565,14 @@ jobs:
           # failures (which the cli build doesn't need to succeed).
           # pnpm@8.15.0 matches v3/package.json's packageManager pin.
           cd v3
+          # iter 139 — npm/pnpm fetch retries via env. Several postinstalls
+          # (onnxruntime-node, sharp) download CDN binaries; GH runners
+          # observed ECONNRESET mid-fetch with no auto-retry. These env
+          # vars push npm/pnpm to retry 5x with 1s→60s backoff.
+          export npm_config_fetch_retries=5
+          export npm_config_fetch_retry_mintimeout=1000
+          export npm_config_fetch_retry_maxtimeout=60000
+          export npm_config_fetch_retry_factor=2
           npx -y pnpm@8.15.0 install --frozen-lockfile --reporter=append-only
           # iter 138 — pnpm rebuild sharp (iter 134) didn't fix the missing
           # linux-x64 .node binary because pnpm 8.15's store doesn't honor
