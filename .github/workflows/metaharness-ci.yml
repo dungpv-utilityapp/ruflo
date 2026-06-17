@@ -153,15 +153,19 @@ jobs:
           # pnpm@8.15.0 matches v3/package.json's packageManager pin.
           cd v3
           npx -y pnpm@8.15.0 install --frozen-lockfile --reporter=append-only
-          # iter 134 — pnpm 8.15 sandboxes some postinstall scripts in CI,
-          # leaving sharp@0.32.6 without its linux-x64 .node binary. The
-          # CLI's transitive agentic-flow chain require()'s sharp at
-          # bootstrap, so eject + similarity dispatch fail at runtime with
-          # "Cannot find module '../build/Release/sharp-linux-x64.node'".
-          # Explicitly rebuild sharp's native bindings; `|| true` because
-          # if it fails the worst case is the pre-existing missing-binary
-          # which the runtime path already handles (sharp is optional).
-          npx -y pnpm@8.15.0 rebuild sharp 2>/dev/null || true
+          # iter 138 — pnpm rebuild sharp (iter 134) didn't fix the missing
+          # linux-x64 .node binary because pnpm 8.15's store doesn't honor
+          # sharp's vendored download script in some CI configs. Force the
+          # platform-specific install directly into the workspace's sharp
+          # node_modules path. The CLI's transitive agentic-flow chain
+          # require()s sharp at bootstrap; without this binary the CLI
+          # crashes with "Cannot find module '../build/Release/
+          # sharp-linux-x64.node'" before eject's action even runs.
+          SHARP_DIR=$(find node_modules/.pnpm -maxdepth 4 -type d -name sharp 2>/dev/null | head -1)
+          if [ -n "$SHARP_DIR" ]; then
+            ( cd "$SHARP_DIR" && npm install --no-audit --no-fund --ignore-scripts=false 2>&1 | tail -3 || true )
+            ls "$SHARP_DIR/build/Release/" 2>&1 | grep -E '\.node$' || echo "sharp prebuild missing — runtime may fall back to optional path"
+          fi
           # iter 127b — `|| true` because cli's tsc emits TS6305 ("Output
           # file has not been built from source file") for cross-package
           # relative imports from @claude-flow/swarm/src/..., even though
@@ -232,15 +236,19 @@ jobs:
           # pnpm@8.15.0 matches v3/package.json's packageManager pin.
           cd v3
           npx -y pnpm@8.15.0 install --frozen-lockfile --reporter=append-only
-          # iter 134 — pnpm 8.15 sandboxes some postinstall scripts in CI,
-          # leaving sharp@0.32.6 without its linux-x64 .node binary. The
-          # CLI's transitive agentic-flow chain require()'s sharp at
-          # bootstrap, so eject + similarity dispatch fail at runtime with
-          # "Cannot find module '../build/Release/sharp-linux-x64.node'".
-          # Explicitly rebuild sharp's native bindings; `|| true` because
-          # if it fails the worst case is the pre-existing missing-binary
-          # which the runtime path already handles (sharp is optional).
-          npx -y pnpm@8.15.0 rebuild sharp 2>/dev/null || true
+          # iter 138 — pnpm rebuild sharp (iter 134) didn't fix the missing
+          # linux-x64 .node binary because pnpm 8.15's store doesn't honor
+          # sharp's vendored download script in some CI configs. Force the
+          # platform-specific install directly into the workspace's sharp
+          # node_modules path. The CLI's transitive agentic-flow chain
+          # require()s sharp at bootstrap; without this binary the CLI
+          # crashes with "Cannot find module '../build/Release/
+          # sharp-linux-x64.node'" before eject's action even runs.
+          SHARP_DIR=$(find node_modules/.pnpm -maxdepth 4 -type d -name sharp 2>/dev/null | head -1)
+          if [ -n "$SHARP_DIR" ]; then
+            ( cd "$SHARP_DIR" && npm install --no-audit --no-fund --ignore-scripts=false 2>&1 | tail -3 || true )
+            ls "$SHARP_DIR/build/Release/" 2>&1 | grep -E '\.node$' || echo "sharp prebuild missing — runtime may fall back to optional path"
+          fi
           # iter 127b — `|| true` because cli's tsc emits TS6305 ("Output
           # file has not been built from source file") for cross-package
           # relative imports from @claude-flow/swarm/src/..., even though
@@ -414,15 +422,19 @@ jobs:
           # pnpm@8.15.0 matches v3/package.json's packageManager pin.
           cd v3
           npx -y pnpm@8.15.0 install --frozen-lockfile --reporter=append-only
-          # iter 134 — pnpm 8.15 sandboxes some postinstall scripts in CI,
-          # leaving sharp@0.32.6 without its linux-x64 .node binary. The
-          # CLI's transitive agentic-flow chain require()'s sharp at
-          # bootstrap, so eject + similarity dispatch fail at runtime with
-          # "Cannot find module '../build/Release/sharp-linux-x64.node'".
-          # Explicitly rebuild sharp's native bindings; `|| true` because
-          # if it fails the worst case is the pre-existing missing-binary
-          # which the runtime path already handles (sharp is optional).
-          npx -y pnpm@8.15.0 rebuild sharp 2>/dev/null || true
+          # iter 138 — pnpm rebuild sharp (iter 134) didn't fix the missing
+          # linux-x64 .node binary because pnpm 8.15's store doesn't honor
+          # sharp's vendored download script in some CI configs. Force the
+          # platform-specific install directly into the workspace's sharp
+          # node_modules path. The CLI's transitive agentic-flow chain
+          # require()s sharp at bootstrap; without this binary the CLI
+          # crashes with "Cannot find module '../build/Release/
+          # sharp-linux-x64.node'" before eject's action even runs.
+          SHARP_DIR=$(find node_modules/.pnpm -maxdepth 4 -type d -name sharp 2>/dev/null | head -1)
+          if [ -n "$SHARP_DIR" ]; then
+            ( cd "$SHARP_DIR" && npm install --no-audit --no-fund --ignore-scripts=false 2>&1 | tail -3 || true )
+            ls "$SHARP_DIR/build/Release/" 2>&1 | grep -E '\.node$' || echo "sharp prebuild missing — runtime may fall back to optional path"
+          fi
           # iter 127b — `|| true` because cli's tsc emits TS6305 ("Output
           # file has not been built from source file") for cross-package
           # relative imports from @claude-flow/swarm/src/..., even though
@@ -530,15 +542,19 @@ jobs:
           # pnpm@8.15.0 matches v3/package.json's packageManager pin.
           cd v3
           npx -y pnpm@8.15.0 install --frozen-lockfile --reporter=append-only
-          # iter 134 — pnpm 8.15 sandboxes some postinstall scripts in CI,
-          # leaving sharp@0.32.6 without its linux-x64 .node binary. The
-          # CLI's transitive agentic-flow chain require()'s sharp at
-          # bootstrap, so eject + similarity dispatch fail at runtime with
-          # "Cannot find module '../build/Release/sharp-linux-x64.node'".
-          # Explicitly rebuild sharp's native bindings; `|| true` because
-          # if it fails the worst case is the pre-existing missing-binary
-          # which the runtime path already handles (sharp is optional).
-          npx -y pnpm@8.15.0 rebuild sharp 2>/dev/null || true
+          # iter 138 — pnpm rebuild sharp (iter 134) didn't fix the missing
+          # linux-x64 .node binary because pnpm 8.15's store doesn't honor
+          # sharp's vendored download script in some CI configs. Force the
+          # platform-specific install directly into the workspace's sharp
+          # node_modules path. The CLI's transitive agentic-flow chain
+          # require()s sharp at bootstrap; without this binary the CLI
+          # crashes with "Cannot find module '../build/Release/
+          # sharp-linux-x64.node'" before eject's action even runs.
+          SHARP_DIR=$(find node_modules/.pnpm -maxdepth 4 -type d -name sharp 2>/dev/null | head -1)
+          if [ -n "$SHARP_DIR" ]; then
+            ( cd "$SHARP_DIR" && npm install --no-audit --no-fund --ignore-scripts=false 2>&1 | tail -3 || true )
+            ls "$SHARP_DIR/build/Release/" 2>&1 | grep -E '\.node$' || echo "sharp prebuild missing — runtime may fall back to optional path"
+          fi
           # iter 127b — `|| true` because cli's tsc emits TS6305 ("Output
           # file has not been built from source file") for cross-package
           # relative imports from @claude-flow/swarm/src/..., even though
